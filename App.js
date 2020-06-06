@@ -1,19 +1,20 @@
+import 'react-native-gesture-handler';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { Router, Scene } from 'react-native-router-flux';
+
+import Login from './Components/Others/Login.android.jsx';
+import Register from './Components/Others/Register.android.jsx';
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
+    <View >
+      <Router>
+        <Scene key="root">
+          <Scene key="login" component={Login} title="Login" initial={true} />
+          <Scene key="register" component={Register} title="Register" />
+        </Scene>
+      </Router>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

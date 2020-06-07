@@ -3,9 +3,6 @@ import {View, Text, StyleSheet} from 'react-native';
 import { Header as Title, Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-import Login from '../Others/Login.android.jsx';
-import Register from '../Others/Register.android.jsx';
-
 const Header = props => {
   const [isLoggedIn, setIsLoggedIn] = useState();
 
@@ -48,7 +45,8 @@ const Styles = StyleSheet.create({
   },
   titleBeforeLogin: {
     color: '#fff',
-    fontSize: 20
+    fontSize: 20,
+    fontWeight: 'bold'
   },
   titleContainerAfterLogin: {
     marginTop: '-10%',

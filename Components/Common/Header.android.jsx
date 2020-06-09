@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import {useHistory} from 'react-router-dom';
 import {View, Text, StyleSheet} from 'react-native';
 import { Header as Title, Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 const Header = props => {
   const [isLoggedIn, setIsLoggedIn] = useState();
+  const history = useHistory();
 
   useEffect(() => {
     setIsLoggedIn(props.isLoggedIn);
   }, [props.isLoggedIn]);
 
   const logoutUser = () => {
-    console.log("logged out");
+    history.push('/');
   }
 
   return(
@@ -28,7 +30,7 @@ const Header = props => {
           <Title
           placement="left"
           leftComponent = {{text: 'TodoApp', style: Styles.titleAfterLogin}}
-          rightComponent = {<Button icon={<Icon name="sign-out" size={20} color="white"/>} onClick={logoutUser} />}
+          rightComponent = {<Button icon={<Icon name="sign-out" size={20} color="white"/>} onPress={logoutUser} />}
           />
         </View>
       }
@@ -55,6 +57,7 @@ const Styles = StyleSheet.create({
   },
   titleAfterLogin: {
     color: '#fff',
-    fontSize: 20
+    fontSize: 20,
+    fontWeight: 'bold'
   }
 })

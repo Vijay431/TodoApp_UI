@@ -5,12 +5,14 @@ import {NativeRouter, Route} from 'react-router-native';
 
 import Login from './Components/Others/Login.android.jsx';
 import Register from './Components/Others/Register.android.jsx';
+import TaskHeader from './Components/Others/TaskHeader.android.jsx';
 
 export default function App() {
   return (
     <NativeRouter>
       <Route exact={true} path='/' component={Login} />
       <Route path='/register' component={Register} />
+      <Route path='/taskheader' component={TaskHeader} />
     </NativeRouter>
   );
 }

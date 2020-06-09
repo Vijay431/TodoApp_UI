@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import {useHistory} from 'react-router-dom';
 import {View, Text, TextInput, Button, Alert, AsyncStorage, StyleSheet} from 'react-native';
 import {Link} from 'react-router-native';
 import base64 from 'react-native-base64'
@@ -8,12 +9,14 @@ import Header from '../Common/Header.android.jsx';
 const Login = props => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const history = useHistory();
 
   const loginFunc = () => {
     if(username != "" && password != ""){
       let token = base64.encode(username + ':' + password);
       AsyncStorage.setItem('Auth-Token', token);
-      AsyncStorage.getItem('Auth-Token').then(token => console.log(base64.decode(token)));
+      // AsyncStorage.getItem('Auth-Token').then(token => console.log(base64.decode(token)));
+      history.push('/taskheader');
     }
     else{
       Alert.alert('Failure', 'All fields are mandatory', [{text: 'Okay'}])

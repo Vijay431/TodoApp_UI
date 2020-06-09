@@ -28,7 +28,7 @@ const Login = props => {
 
   return(
     <View>
-      <Header/>
+      <Header isLoggedoff={true} isLoggedIn={false} isBackRequired={false}  />
       <View style={Styles.container} >
         <View style={Styles.header} >
           <Text style={Styles.headerText} >Login</Text>

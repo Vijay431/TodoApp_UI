@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {useHistory} from 'react-router-dom';
-import {View, Text, TextInput, Alert, StyleSheet} from 'react-native';
+import {View, Text, TextInput, Alert, ScrollView, StyleSheet} from 'react-native';
 import {Button} from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
@@ -58,6 +58,7 @@ const TaskList = () => {
           </View>
         </View>
         <View style={Styles.bodyContainer} >
+          <ScrollView style={Styles.scrollable} >
           {
             taskList.map((task, index) => {
               return <View key={index} style={Styles.tasks} >
@@ -75,6 +76,7 @@ const TaskList = () => {
               </View>
             })
           }
+          </ScrollView>
         </View>
       </View>
     </View>
@@ -116,6 +118,9 @@ const Styles = StyleSheet.create({
   button: {},
   bodyContainer: {
     marginVertical: 15
+  },
+  scrollable: {
+    height: '82.5%'
   },
   tasks: {
     flexDirection: 'row',

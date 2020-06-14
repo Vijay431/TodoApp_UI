@@ -1,13 +1,15 @@
 import React, {useState, useEffect} from 'react';
 import {useHistory} from 'react-router-dom';
-import {View, Text, TextInput, Button, ScrollView, SafeAreaView, StyleSheet} from 'react-native';
+import {View, Text, TextInput, Button, Alert, ScrollView, AsyncStorage, SafeAreaView, StyleSheet} from 'react-native';
 import {Button as ReactButton} from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {Link} from 'react-router-native';
 
 import Header from '../Common/Header.android.jsx';
 import TaskList from './TaskList.android.jsx';
+import Environment from '../Common/environment.android.jsx';
 
+var TOKEN = "";
 var SOURCE_DATA = [];
 
 const TaskHeader = props => {
@@ -16,26 +18,83 @@ const TaskHeader = props => {
   const history = useHistory();
 
   useEffect(() => {
-    //get headers service
-  }, [taskHeaderArray])
+    AsyncStorage.getItem('Auth-Token').then(token => {return TOKEN = token});
+    getUserHeaders();
+  }, [])
+
+  const getUserHeaders = () => {
+    fetch(Environment.taskHeaderGet + "?token=" + TOKEN)
+    .then(res => res.json())
+    .then(json => {
+      if(json.message === 'success'){
+        setTaskHeaderArray(json.headers);
+      }
+      else{
+        setTaskHeaderArray([]);
+      }
+    })
+    .catch(err => Alert.alert('Failure', 'Uh-Oh! Something went Wrong!', [{text: 'Okay'}]))
+  }
 
   const headerFunc = (text) => {
     setHeader(text);
   }
+
   const saveHeader = () => {
-    if(header != ""){
-      //post headers service
+    if(header != "" && TOKEN != ""){
       let body = {
+        token: TOKEN,
         header: header,
-        id: Date.now().toString()
+        headerID: Date.now().toString()
       }
-      setTaskHeaderArray(prevState => [...prevState, body]);
-      setHeader('');
+      fetch(Environment.taskHeaderAdd, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      })
+      .then(res => res.json())
+      .then(json => {
+        if(json.message === 'success'){
+          // setTaskHeaderArray(prevState => [...prevState, body]);
+          SOURCE_DATA.push(body);
+          setTaskHeaderArray(SOURCE_DATA);
+          setHeader('');
+        }
+        else{
+          Alert.alert('Failure', 'Please try again later!', [{text: 'Okay'}]);
+        }
+      })
+      .catch(err => Alert.alert('Failure', 'Uh-Oh! Something went Wrong!', [{text: 'Okay'}]))
     }
   }
-  const deleteHeading = (heading, index) => {
-    taskHeaderArray.splice(index, 1);
-    setTaskHeaderArray(taskHeaderArray);
+
+  const deleteHeading = (taskheader, index) => {
+    fetch(Environment.taskHeaderDelete, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        token: TOKEN,
+        headerID: taskheader.headerID
+      })
+    })
+    .then(res => res.json())
+    .then(json => {
+      if(json.message === 'success'){
+        taskHeaderArray.splice(index, 1);
+        setTaskHeaderArray(taskHeaderArray);
+        Alert.alert('Success', 'Deleted Successfully!', [{text: 'Okay', onPress: () => getUserHeaders()}])
+      }
+      else{
+        Alert.alert('Failure', 'Please try again later!', [{text: 'Okay'}]);
+      }
+    })
+    .catch(err => Alert.alert('Failure', 'Uh-Oh! Something went Wrong!', [{text: 'Okay'}]))
   }
 
   const redirectTo = (taskHeading) => {
@@ -66,7 +125,7 @@ const TaskHeader = props => {
           return  <View key={index} style={Styles.container} >
             <View style={Styles.taskHeader}>
               <View style={Styles.deleteButton} >
-                <ReactButton icon={<Icon name="trash" size={20} color="white" />} onPress={() => deleteHeading(taskHeading.header, index)} />
+                <ReactButton icon={<Icon name="trash" size={20} color="white" />} onPress={() => deleteHeading(taskHeading, index)} />
               </View>
               <View style={Styles.heading} >
                 <Text>{taskHeading.header}</Text>

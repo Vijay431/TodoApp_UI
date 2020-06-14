@@ -1,10 +1,14 @@
 import React, {useState, useEffect} from 'react';
 import {useHistory} from 'react-router-dom';
-import {View, Text, TextInput, Alert, ScrollView, StyleSheet} from 'react-native';
+import {View, Text, TextInput, Alert, ScrollView, AsyncStorage, StyleSheet} from 'react-native';
 import {Button} from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 import Header from '../Common/Header.android.jsx';
+import Environment from '../Common/environment.android.jsx';
+
+var TOKEN = "";
+var SOURCE_DATA = [];
 
 const TaskList = () => {
   const history = useHistory();
@@ -12,7 +16,24 @@ const TaskList = () => {
   const [task, setTask] = useState('');
   const [taskCompleted, setTaskCompleted] = useState();
 
-  useEffect(() => {}, [taskCompleted, taskList]);
+  useEffect(() => {
+    AsyncStorage.getItem('Auth-Token').then(token => {return TOKEN = token});
+    getUserTasks();
+  }, []);
+
+  const getUserTasks = () => {
+    fetch(Environment.taskListGet + "?token=" + TOKEN)
+    .then(res => res.json())
+    .then(json => {
+      if(json.message === 'success'){
+        setTaskList(json.tasks);
+      }
+      else{
+        setTaskList([])
+      }
+    })
+    .catch(err => Alert.alert('Failure', 'Uh-Oh! Something went Wrong!', [{text: 'Okay'}]))
+  }
 
   const taskInputHandler = (text) => {
     setTask(text);
@@ -21,11 +42,32 @@ const TaskList = () => {
   const saveTasks = () => {
     if(task != ""){
       let body = {
+        token: TOKEN,
         task: task,
-        completed: false
+        taskID: Date.now().toString(),
+        completed: "false"
       }
-      setTaskList(prevState => [...prevState, body]);
-      setTask('');
+      fetch(Environment.taskListAdd, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      })
+      .then(res => res.json())
+      .then(json => {
+        if(json.message === 'success'){
+          // setTaskList(prevState => [...prevState, body]);
+          SOURCE_DATA.push(body);
+          setTaskList(SOURCE_DATA);
+          setTask('');
+        }
+        else{
+          Alert.alert('Failure', 'Please try again later!', [{text: 'Okay'}]);
+        }
+      })
+      .catch(err => Alert.alert('Failure', 'Uh-Oh! Something went Wrong!', [{text: 'Okay'}]))
     }
     else{
       Alert.alert('Failure', 'Empty task is not allowed to save!', [{text: 'Okay'}]);
@@ -33,8 +75,29 @@ const TaskList = () => {
   }
 
   const completeTask = (task, index) => {
-    taskList[index].completed = true;
-    setTaskList(taskList);
+    fetch(Environment.taskListUpdate, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        token: task.token,
+        taskID: task.taskID,
+        completed: 'true',
+        task: task.task
+      })
+    })
+    .then(res => res.json())
+    .then(json => {
+      if(json.message === 'success'){
+        getUserTasks();
+      }
+      else{
+        Alert.alert('Failure', 'Please try again later!', [{text: 'Okay'}]);
+      }
+    })
+    .catch(err => Alert.alert('Failure', 'Uh-Oh! Something went Wrong!', [{text: 'Okay'}]))
   }
 
   const removeTask = (index) => {
@@ -64,7 +127,7 @@ const TaskList = () => {
               return <View key={index} style={Styles.tasks} >
                 <View style={Styles.taskContainer} >
                 {
-                  task.completed ? <Text style={Styles.completedTask} >{task.task}</Text> : <Text style={Styles.task} >{task.task}</Text>
+                  task.completed === 'true' ? <Text style={Styles.completedTask} >{task.task}</Text> : <Text style={Styles.task} >{task.task}</Text>
                 }
                 </View>
                 <View style={Styles.completeTask} >

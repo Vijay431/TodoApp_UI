@@ -3,6 +3,7 @@ import {useHistory} from 'react-router-dom';
 import {View, Text, TextInput, Button, Alert, StyleSheet} from 'react-native';
 
 import Header from '../Common/Header.android.jsx';
+import Environment from '../Common/environment.android.jsx';
 
 const Register = props => {
   const [username, setUsername] = useState('');
@@ -13,9 +14,34 @@ const Register = props => {
   const registerFunc = () => {
     if(username != "" && password != "" && repassword != ""){
       if(password != "" && repassword != ""){
-        Alert.alert('Success', 'User Registered Successfully!');
-        history.push('/');
+        fetch(Environment.register, {
+          method: 'POST',
+          headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+              username: username,
+              password: password
+          })
+        })
+        .then(res => res.json())
+        .then(json => {
+          if(json.message === 'success'){
+            Alert.alert('Success', 'User Registered Successfully!', [{text: 'Okay', onPress: () => history.push('/')}]);
+          }
+          else{
+            Alert.alert('Failure', 'Please try again later!', [{text: 'Okay'}]);
+          }
+        })
+        .catch(err => Alert.alert('Failure', 'Uh-Oh! Something went Wrong!', [{text: 'Okay'}]))
       }
+      else{
+        Alert.alert('Failure', 'Passwords aren\'t matching', [{text: 'Okay'}]);
+      }
+    }
+    else{
+      Alert.alert('Failure', 'All fields are mandatory!', [{text: 'Okay'}]);
     }
   };
 

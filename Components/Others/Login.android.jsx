@@ -2,9 +2,10 @@ import React, {useState, useEffect} from 'react';
 import {useHistory} from 'react-router-dom';
 import {View, Text, TextInput, Button, Alert, AsyncStorage, StyleSheet} from 'react-native';
 import {Link} from 'react-router-native';
-import base64 from 'react-native-base64'
+import base64 from 'react-native-base64';
 
 import Header from '../Common/Header.android.jsx';
+import Environment from '../Common/environment.android.jsx';
 
 const Login = props => {
   const [username, setUsername] = useState('');
@@ -15,8 +16,20 @@ const Login = props => {
     if(username != "" && password != ""){
       let token = base64.encode(username + ':' + password);
       AsyncStorage.setItem('Auth-Token', token);
+      fetch(Environment.login + "?username=" + username + "&password=" + password)
+      .then(res => res.json())
+      .then(json => {
+        if(json.message === 'failure'){
+          Alert.alert('Failure', 'Not a Registered User. \nRedirecting to Register Page!', [{text: 'Okay', onPress: () => history.push('/register')}]);
+        }
+        else{
+          history.push('/taskheader');
+        }
+      })
+      .catch(err => {
+        Alert.alert('Failure', 'Uh-Oh! Something went Wrong!', [{text: 'Okay'}]);
+      })
       // AsyncStorage.getItem('Auth-Token').then(token => console.log(base64.decode(token)));
-      history.push('/taskheader');
     }
     else{
       Alert.alert('Failure', 'All fields are mandatory', [{text: 'Okay'}])

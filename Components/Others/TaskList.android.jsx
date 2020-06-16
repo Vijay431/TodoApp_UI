@@ -8,7 +8,6 @@ import Header from '../Common/Header.android.jsx';
 import Environment from '../Common/environment.android.jsx';
 
 var TOKEN = "";
-var SOURCE_DATA = [];
 
 const TaskList = () => {
   const history = useHistory();
@@ -22,7 +21,7 @@ const TaskList = () => {
   }, []);
 
   const getUserTasks = () => {
-    fetch(Environment.taskListGet + "?token=" + TOKEN)
+    fetch(Environment.taskListGet + "?token=" + TOKEN + "&headerid=" + history.location.state.headerID)
     .then(res => res.json())
     .then(json => {
       if(json.message === 'success'){
@@ -45,6 +44,7 @@ const TaskList = () => {
         token: TOKEN,
         task: task,
         taskID: Date.now().toString(),
+        headerID: history.location.state.headerID.toString(),
         completed: "false"
       }
       fetch(Environment.taskListAdd, {
@@ -58,10 +58,8 @@ const TaskList = () => {
       .then(res => res.json())
       .then(json => {
         if(json.message === 'success'){
-          // setTaskList(prevState => [...prevState, body]);
-          SOURCE_DATA.push(body);
-          setTaskList(SOURCE_DATA);
           setTask('');
+          getUserTasks();
         }
         else{
           Alert.alert('Failure', 'Please try again later!', [{text: 'Okay'}]);
@@ -74,7 +72,7 @@ const TaskList = () => {
     }
   }
 
-  const completeTask = (task, index) => {
+  const completeTask = (task) => {
     fetch(Environment.taskListUpdate, {
       method: 'POST',
       headers: {
@@ -84,8 +82,8 @@ const TaskList = () => {
       body: JSON.stringify({
         token: task.token,
         taskID: task.taskID,
-        completed: 'true',
-        task: task.task
+        headerID: history.location.state.headerID.toString(),
+        completed: 'true'
       })
     })
     .then(res => res.json())
@@ -100,9 +98,30 @@ const TaskList = () => {
     .catch(err => Alert.alert('Failure', 'Uh-Oh! Something went Wrong!', [{text: 'Okay'}]))
   }
 
-  const removeTask = (index) => {
-    taskList.splice(index, 1);
-    setTaskList(taskList);
+  const removeTask = (task) => {
+    fetch(Environment.taskListDelete, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        token: task.token,
+        taskID: task.taskID,
+        headerID: history.location.state.headerID.toString()
+      })
+    })
+    .then(res => res.json())
+    .then(json => {
+      console.log(json);
+      if(json.message === 'success'){
+        Alert.alert('Success', 'Data deleted successfully!', [{text: 'Okay', onPress: () => getUserTasks()}])
+      }
+      else{
+        Alert.alert('Failure', 'Please try again later!', [{text: 'Okay'}]);
+      }
+    })
+    .catch(err => Alert.alert('Failure', 'Uh-Oh! Something went Wrong!', [{text: 'Okay'}]))
   }
 
   return(
@@ -131,10 +150,10 @@ const TaskList = () => {
                 }
                 </View>
                 <View style={Styles.completeTask} >
-                  <Icon name="check" size={25} onPress={() => completeTask(task, index)} />
+                  <Icon name="check" size={25} onPress={() => completeTask(task)} />
                 </View>
                 <View style={Styles.removeTask} >
-                  <Icon name="close" size={25} onPress={() => removeTask(index)} />
+                  <Icon name="close" size={25} onPress={() => removeTask(task)} />
                 </View>
               </View>
             })
